@@ -1,0 +1,10 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    choice (0.2.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  choice (~> 0.2.0)
