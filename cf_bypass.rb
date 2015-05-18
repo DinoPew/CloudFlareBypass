@@ -14,7 +14,7 @@ class CFBypass
   end
 
   def run (file_contents, logger)
-    subs = ['cpanel', 'ftp', 'admin']
+    subs = ['cpanel', 'ftp', 'admin', 'vpn', 'irc', 'jabber', 'xmpp', 'mail', 'smtp', 'imap', 'pop', 'pop3', 'ssh', 'telnet', 'www1', 'ww1', 'www2', 'ww2',]
     logger.info 'Iterating over targets...'
     puts ''
     file_contents.each_line do |line|
@@ -112,7 +112,6 @@ puts '
 ..................................... ..............................................................
 ............................... ................. ..................................................
 
-By: DinoPew
 
 '
 
