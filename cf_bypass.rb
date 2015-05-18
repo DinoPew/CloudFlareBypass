@@ -15,33 +15,61 @@ class CFBypass
 
   def run (file_contents, logger)
     subs = ['cpanel', 'ftp', 'admin', 'vpn', 'irc', 'jabber', 'xmpp', 'mail', 'smtp', 'imap', 'pop', 'pop3', 'ssh', 'telnet', 'www1', 'ww1', 'www2', 'ww2',]
-    logger.info 'Iterating over targets...'
+    logger.info 'Scanning targets...'
     puts ''
+    err = []
+    succ = []
+    fail = []
     file_contents.each_line do |line|
       # Clean the target string
       line = line.strip
       begin
         cf_host_ip = IPSocket.getaddress(line).inspect.to_s
-        logger.info "#{cf_host_ip} <--- CloudFlare IP for: #{line}"
+        cf_info = "[CloudFlare IP]: #{cf_host_ip.strip} - #{line}"
+        new_arr = []
         subs.each do |sub|
-          #logger.info "Checking: #{sub+'.'+line}..."
           begin
             real_ip = IPSocket.getaddress(sub+'.'+line).inspect.to_s
             if real_ip === cf_host_ip
-              #logger.warn "#{sub+'.'+line} has the same ip as #{line} : #{cf_host_ip} : real ip not found"
+              fail << "#{sub+'.'+line} has the same ip as #{line} : #{cf_host_ip} : real ip not found"
             else
-              logger.info "#{real_ip} <--- Possible real IP for: #{sub+'.'+line}"
+              new_arr << "[Possible real IP]: #{real_ip.strip} - #{sub+'.'+line}"
             end
           rescue
             #logger.warn "Cloud not get IP for: #{sub+'.'+line}"
           end
         end
+        if !new_arr.empty?
+          succ << cf_info
+          new_arr.each do |l|
+            succ << l
+          end
+          succ << " "
+        end
       rescue
-        logger.error "Cloud not get CloudFlare IP for: #{line}"
+        err << "Cloud not get CloudFlare IP for: #{line}"
       end
-      puts ''
     end
-
+    if !succ.empty?
+      logger.info 'The following are results are potential real results: '
+      succ.each do |s|
+        logger.info s
+      end
+      puts "\n"
+    end
+    if !fail.empty?
+      logger.info 'The following domains did not return any results: '
+      fail.each do |f|
+        logger.warn f
+      end
+      puts "\n"
+    end
+    if !err.empty?
+      logger.info 'The following errors occurred: '
+      err.each do |e|
+        logger.error e
+      end
+    end
   end
 end
 
@@ -137,6 +165,11 @@ end
 
 # Init logger
 logger = Logger.new(STDOUT)
+
+logger.formatter = proc do |severity, datetime, progname, msg|
+  "[#{severity}]: #{msg}\n"
+end
+
 logger.level = Logger::INFO
 
 # We need to disable SSL verification for windows, unless you install this cert: http://curl.haxx.se/ca/cacert.pem
